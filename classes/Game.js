@@ -1,0 +1,324 @@
+/**
+ * Game manager for the Canadian Coin Counter game
+ */
+import { Coin } from './Coin.js';
+import { getRandomInt, formatCurrency, resolveCollision, clamp } from '../utils/mathHelpers.js';
+import { updateUserCount, updateActualTotal } from '../utils/canvasHelpers.js';
+
+export class Game {
+  /**
+   * Create a new game instance
+   * @param {p5} p - The p5 instance
+   * @param {Object} coinImages - Object containing loaded coin images
+   */
+  constructor(p, coinImages) {
+    this.p = p;
+    this.coinImages = coinImages;
+    this.coins = [];
+    this.draggedCoin = null;
+    this.totalValue = 0;
+    this.userGuess = 0;
+    this.gameEnded = false;
+    
+    // Game configuration
+    this.minCoins = 5;
+    this.maxCoins = 12;
+    
+    // Initialize game
+    this.init();
+    
+    // Setup event listeners for game controls
+    this.setupEventListeners();
+  }
+  
+  /**
+   * Initialize the game with random coins
+   */
+  init() {
+    this.coins = [];
+    this.gameEnded = false;
+    this.totalValue = 0;
+    
+    // Reset UI displays
+    updateUserCount('$0.00');
+    updateActualTotal('$0.00', false);
+    
+    // Generate random coins
+    const numCoins = getRandomInt(this.minCoins, this.maxCoins);
+    
+    // Coin types and their probabilities
+    const coinTypes = ['toonie', 'loonie', 'quarter', 'dime', 'nickel'];
+    
+    for (let i = 0; i < numCoins; i++) {
+      // Choose a random coin type
+      const coinType = coinTypes[getRandomInt(0, coinTypes.length - 1)];
+      
+      // Find a valid position for the new coin
+      let validPosition = false;
+      let x, y;
+      let attempts = 0;
+      const maxAttempts = 100;
+      
+      while (!validPosition && attempts < maxAttempts) {
+        // Generate random position within canvas
+        const padding = 50;
+        x = getRandomInt(padding, this.p.width - padding);
+        y = getRandomInt(padding, this.p.height - padding);
+        
+        // Create a temporary coin to check for collisions
+        const tempCoin = new Coin(this.p, x, y, coinType, this.coinImages);
+        
+        // Check if this coin overlaps with any existing coins
+        validPosition = this.coins.every(coin => {
+          const dx = coin.x - tempCoin.x;
+          const dy = coin.y - tempCoin.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          return distance > (coin.radius + tempCoin.radius);
+        });
+        
+        attempts++;
+      }
+      
+      // If we found a valid position, create the coin
+      if (validPosition) {
+        const coin = new Coin(this.p, x, y, coinType, this.coinImages);
+        this.coins.push(coin);
+        this.totalValue += coin.value;
+      }
+    }
+    
+    console.log(`Game started with ${this.coins.length} coins. Total value: ${formatCurrency(this.totalValue)}`);
+  }
+  
+  /**
+   * Setup event listeners for game controls
+   */
+  setupEventListeners() {
+    const submitBtn = document.getElementById('submit-btn');
+    const newGameBtn = document.getElementById('new-game-btn');
+    
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => {
+        this.checkAnswer();
+      });
+    }
+    
+    if (newGameBtn) {
+      newGameBtn.addEventListener('click', () => {
+        this.init();
+      });
+    }
+  }
+  
+  /**
+   * Handle canvas resize
+   * @param {number} width - New canvas width
+   * @param {number} height - New canvas height
+   */
+  handleCanvasResize(width, height) {
+    // Ensure all coins stay within new boundaries
+    for (const coin of this.coins) {
+      coin.x = clamp(coin.x, coin.radius, width - coin.radius);
+      coin.y = clamp(coin.y, coin.radius, height - coin.radius);
+    }
+  }
+  
+  /**
+   * Handle mouse pressed event
+   */
+  handleMousePressed() {
+    if (this.gameEnded) return;
+    
+    // Check if mouse is over any coin
+    for (let i = this.coins.length - 1; i >= 0; i--) {
+      const coin = this.coins[i];
+      if (coin.isMouseOver(this.p.mouseX, this.p.mouseY)) {
+        // Move this coin to the top of the stack (end of array)
+        this.coins.splice(i, 1);
+        this.coins.push(coin);
+        
+        // Start dragging the coin
+        coin.startDrag(this.p.mouseX, this.p.mouseY);
+        this.draggedCoin = coin;
+        break;
+      }
+    }
+  }
+  
+  /**
+   * Handle mouse released event
+   */
+  handleMouseReleased() {
+    if (this.draggedCoin) {
+      this.draggedCoin.stopDrag();
+      this.draggedCoin = null;
+    }
+  }
+  
+  /**
+   * Update game state
+   */
+  update() {
+    // Update dragged coin position
+    if (this.draggedCoin) {
+      this.draggedCoin.updateDrag(this.p.mouseX, this.p.mouseY, 0, this.p.width, 0, this.p.height);
+    }
+    
+    // Check and resolve collisions between coins
+    for (let i = 0; i < this.coins.length; i++) {
+      for (let j = i + 1; j < this.coins.length; j++) {
+        const coin1 = this.coins[i];
+        const coin2 = this.coins[j];
+        
+        // Calculate distance between coins
+        const dx = coin2.x - coin1.x;
+        const dy = coin2.y - coin1.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Check for collision
+        if (distance < (coin1.radius + coin2.radius)) {
+          // Resolve the collision
+          const { circle1, circle2 } = resolveCollision(
+            { x: coin1.x, y: coin1.y, radius: coin1.radius },
+            { x: coin2.x, y: coin2.y, radius: coin2.radius }
+          );
+          
+          // Only apply physics to non-dragged coins
+          if (coin1 !== this.draggedCoin) {
+            coin1.x = circle1.x;
+            coin1.y = circle1.y;
+            
+            // Apply force in the direction away from collision
+            const forceMagnitude = 0.5;
+            const forceX = (coin1.x - coin2.x) / distance * forceMagnitude;
+            const forceY = (coin1.y - coin2.y) / distance * forceMagnitude;
+            coin1.applyForce(forceX, forceY);
+          }
+          
+          if (coin2 !== this.draggedCoin) {
+            coin2.x = circle2.x;
+            coin2.y = circle2.y;
+            
+            // Apply force in the direction away from collision
+            const forceMagnitude = 0.5;
+            const forceX = (coin2.x - coin1.x) / distance * forceMagnitude;
+            const forceY = (coin2.y - coin1.y) / distance * forceMagnitude;
+            coin2.applyForce(forceX, forceY);
+          }
+        }
+      }
+    }
+    
+    // Update physics for all coins
+    for (const coin of this.coins) {
+      coin.update(0, this.p.width, 0, this.p.height);
+    }
+  }
+  
+  /**
+   * Draw all coins and game elements
+   */
+  draw() {
+    // Draw all coins
+    for (const coin of this.coins) {
+      coin.draw();
+    }
+    
+    // Display game over message if game has ended
+    if (this.gameEnded) {
+      this.p.fill(0, 0, 0, 200);
+      this.p.rect(0, 0, this.p.width, this.p.height);
+      
+      this.p.fill(255);
+      this.p.textSize(32);
+      this.p.textAlign(this.p.CENTER, this.p.CENTER);
+      this.p.text('Game Over!', this.p.width/2, this.p.height/2 - 50);
+      
+      this.p.textSize(24);
+      this.p.text(`Your count: ${formatCurrency(this.userGuess)}`, this.p.width/2, this.p.height/2);
+      this.p.text(`Actual total: ${formatCurrency(this.totalValue)}`, this.p.width/2, this.p.height/2 + 50);
+      
+      const difference = Math.abs(this.userGuess - this.totalValue);
+      if (difference < 0.01) {
+        this.p.fill(40, 200, 40);
+        this.p.text('Perfect count! Well done!', this.p.width/2, this.p.height/2 + 100);
+      } else {
+        this.p.fill(200, 40, 40);
+        this.p.text(`You were off by ${formatCurrency(difference)}. Try again!`, this.p.width/2, this.p.height/2 + 100);
+      }
+    }
+  }
+  
+  /**
+   * Check the user's answer against the actual total
+   */
+  checkAnswer() {
+    // Parse the user's count from the UI
+    const userCountElement = document.getElementById('user-count');
+    if (userCountElement) {
+      this.userGuess = parseFloat(userCountElement.textContent.replace('$', '')) || 0;
+    }
+    
+    this.gameEnded = true;
+    updateActualTotal(formatCurrency(this.totalValue), true);
+    
+    // Display results
+    console.log(`User guessed: ${formatCurrency(this.userGuess)}, Actual: ${formatCurrency(this.totalValue)}`);
+  }
+  
+  /**
+   * Handle key pressed events
+   */
+  handleKeyPressed() {
+    // Press 'r' to rotate the currently selected coin
+    if (this.p.key === 'r' && this.draggedCoin) {
+      this.draggedCoin.rotation += this.p.PI / 4;
+    }
+    
+    // Press 'c' to check the answer
+    if (this.p.key === 'c') {
+      this.checkAnswer();
+    }
+    
+    // Press 'n' to start a new game
+    if (this.p.key === 'n') {
+      this.init();
+    }
+    
+    // Arrow keys to adjust user count
+    if (!this.gameEnded) {
+      const userCountElement = document.getElementById('user-count');
+      if (userCountElement) {
+        let currentCount = parseFloat(userCountElement.textContent.replace('$', '')) || 0;
+        
+        // Handle more coin increments for different keys
+        if (this.p.keyCode === this.p.UP_ARROW) {
+          currentCount += 0.05;  // Add a nickel
+        } else if (this.p.keyCode === this.p.DOWN_ARROW) {
+          currentCount = Math.max(0, currentCount - 0.05);  // Subtract a nickel, min 0
+        } else if (this.p.keyCode === this.p.RIGHT_ARROW) {
+          currentCount += 0.25;  // Add a quarter
+        } else if (this.p.keyCode === this.p.LEFT_ARROW) {
+          currentCount = Math.max(0, currentCount - 0.25);  // Subtract a quarter, min 0
+        } else if (this.p.key === '1') {
+          currentCount += 1.00;  // Add a loonie
+        } else if (this.p.key === '2') {
+          currentCount += 2.00;  // Add a toonie
+        } else if (this.p.key === 'q') {
+          currentCount -= 1.00;  // Subtract a loonie
+        } else if (this.p.key === 'w') {
+          currentCount -= 2.00;  // Subtract a toonie
+        } else if (this.p.key === 'd') {
+          currentCount += 0.10;  // Add a dime
+        } else if (this.p.key === 's') {
+          currentCount = Math.max(0, currentCount - 0.10);  // Subtract a dime
+        }
+        
+        // Keep count at or above 0
+        currentCount = Math.max(0, currentCount);
+        
+        updateUserCount(formatCurrency(currentCount));
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="45" fill="#b0b0b0" stroke="#909090" stroke-width="2"/>
+  <circle cx="50" cy="50" r="40" fill="#c8c8c8" stroke="#909090" stroke-width="1"/>
+  <text x="50" y="45" font-family="Arial" font-size="16" text-anchor="middle" fill="#333">NICKEL</text>
+  <text x="50" y="65" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">5¢</text>
+</svg>

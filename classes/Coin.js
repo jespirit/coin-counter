@@ -45,6 +45,9 @@ export class Coin {
         this.radius = 20;
         this.value = 0;
     }
+
+    this.visualRadius = this.radius;
+    this.radius *= 0.90;
     
     // Save the offset from mouse to center of coin when dragging
     this.offsetX = 0;
@@ -65,11 +68,11 @@ export class Coin {
     
     if (this.image) {
       p.imageMode(p.CENTER);
-      p.image(this.image, 0, 0, this.radius * 2, this.radius * 2);
+      p.image(this.image, 0, 0, this.visualRadius * 2, this.visualRadius * 2);
     } else {
       // Fallback if image isn't loaded
       p.fill(200, 200, 200);
-      p.ellipse(0, 0, this.radius * 2);
+      p.ellipse(0, 0, this.visualRadius * 2);
       p.fill(0);
       p.textAlign(p.CENTER, p.CENTER);
       p.text(this.type, 0, 0);

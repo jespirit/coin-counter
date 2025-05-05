@@ -49,6 +49,9 @@ export class Coin {
     this.visualRadius = this.radius;
     this.radius *= 0.90;
     
+    // Calculate mass based on radius (proportional to area: πr²)
+    this.mass = Math.PI * this.radius * this.radius * 0.01;
+    
     // Save the offset from mouse to center of coin when dragging
     this.offsetX = 0;
     this.offsetY = 0;
@@ -137,8 +140,9 @@ export class Coin {
    * @param {number} fy - Force in Y direction
    */
   applyForce(fx, fy) {
-    this.vel.x += fx;
-    this.vel.y += fy;
+    // F = ma, so a = F/m
+    this.vel.x += fx / this.mass;
+    this.vel.y += fy / this.mass;
   }
   
   /**
@@ -154,8 +158,10 @@ export class Coin {
       this.x += this.vel.x;
       this.y += this.vel.y;
       
-      // Apply friction
-      this.vel.mult(0.9);
+      // Apply friction (heavier coins have less friction)
+      // Calculate a friction coefficient based on mass (0.05 to 0.15)
+      const frictionCoef = 0.15 - (this.mass * 0.5);
+      this.vel.mult(1 - frictionCoef);
       
       // Check boundary collisions
       if (this.x < minX + this.radius) {

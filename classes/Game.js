@@ -224,27 +224,65 @@ export class Game {
             { x: coin2.x, y: coin2.y, radius: coin2.radius }
           );
           
-          // Only apply physics to non-dragged coins
-          if (coin1 !== this.draggedCoin) {
-            coin1.x = circle1.x;
-            coin1.y = circle1.y;
-            
-            // Apply force in the direction away from collision
-            const forceMagnitude = 0.5;
-            const forceX = (coin1.x - coin2.x) / distance * forceMagnitude;
-            const forceY = (coin1.y - coin2.y) / distance * forceMagnitude;
-            coin1.applyForce(forceX, forceY);
-          }
+          // Calculate relative velocity for collision response
+          const velX1 = coin1.vel.x;
+          const velY1 = coin1.vel.y;
+          const velX2 = coin2.vel.x;
+          const velY2 = coin2.vel.y;
           
-          if (coin2 !== this.draggedCoin) {
-            coin2.x = circle2.x;
-            coin2.y = circle2.y;
+          // Relative velocity magnitude along collision normal
+          const vDotNormal = (velX2 - velX1) * (dx / distance) + 
+                             (velY2 - velY1) * (dy / distance);
+          
+          // Only proceed with collision response if coins are moving toward each other
+          if (vDotNormal > 0) {
+            // Calculate impulse scalar (simplified physics model)
+            // Using conservation of momentum and elasticity
+            const elasticity = 0.8; // 80% elastic collision
+            const totalMass = coin1.mass + coin2.mass;
+            const impulse = (2 * vDotNormal * elasticity) / totalMass;
             
-            // Apply force in the direction away from collision
-            const forceMagnitude = 0.5;
-            const forceX = (coin2.x - coin1.x) / distance * forceMagnitude;
-            const forceY = (coin2.y - coin1.y) / distance * forceMagnitude;
-            coin2.applyForce(forceX, forceY);
+            // Only apply physics to non-dragged coins
+            if (coin1 !== this.draggedCoin) {
+              coin1.x = circle1.x;
+              coin1.y = circle1.y;
+              
+              // Apply impulse-based force based on mass and velocity
+              const forceX = (dx / distance) * impulse * coin2.mass;
+              const forceY = (dy / distance) * impulse * coin2.mass;
+              coin1.applyForce(forceX, forceY);
+              
+              // Apply slight spin based on tangential velocity component
+              const tangentialComponent = Math.abs((velX2 - velX1) * (-dy / distance) + 
+                                              (velY2 - velY1) * (dx / distance));
+              coin1.rotation += tangentialComponent * 0.01;
+            }
+            
+            if (coin2 !== this.draggedCoin) {
+              coin2.x = circle2.x;
+              coin2.y = circle2.y;
+              
+              // Apply impulse-based force based on mass and velocity
+              const forceX = (-dx / distance) * impulse * coin1.mass;
+              const forceY = (-dy / distance) * impulse * coin1.mass;
+              coin2.applyForce(forceX, forceY);
+              
+              // Apply slight spin based on tangential velocity component
+              const tangentialComponent = Math.abs((velX1 - velX2) * (-dy / distance) + 
+                                              (velY1 - velY2) * (dx / distance));
+              coin2.rotation += tangentialComponent * 0.01;
+            }
+          } else {
+            // Coins are separating, just fix positions
+            if (coin1 !== this.draggedCoin) {
+              coin1.x = circle1.x;
+              coin1.y = circle1.y;
+            }
+            
+            if (coin2 !== this.draggedCoin) {
+              coin2.x = circle2.x;
+              coin2.y = circle2.y;
+            }
           }
         }
       }

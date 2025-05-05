@@ -19,6 +19,7 @@ export class Game {
     this.totalValue = 0;
     this.userGuess = 0;
     this.gameEnded = false;
+    this.debugMode = false; // Debug flag
     
     // Game configuration
     this.minCoins = 5;
@@ -96,6 +97,7 @@ export class Game {
   setupEventListeners() {
     const submitBtn = document.getElementById('submit-btn');
     const newGameBtn = document.getElementById('new-game-btn');
+    const debugBtn = document.getElementById('debug-btn');
     
     if (submitBtn) {
       submitBtn.addEventListener('click', () => {
@@ -107,6 +109,45 @@ export class Game {
       newGameBtn.addEventListener('click', () => {
         this.init();
       });
+    }
+    
+    if (debugBtn) {
+      debugBtn.addEventListener('click', () => {
+        this.toggleDebugMode();
+      });
+    } else {
+      // Create debug button if it doesn't exist
+      this.createDebugButton();
+    }
+  }
+  
+  /**
+   * Create a debug button if it doesn't exist
+   */
+  createDebugButton() {
+    const controlsDiv = document.querySelector('.buttons');
+    if (controlsDiv) {
+      const debugBtn = document.createElement('button');
+      debugBtn.id = 'debug-btn';
+      debugBtn.textContent = 'Debug Mode';
+      debugBtn.addEventListener('click', () => {
+        this.toggleDebugMode();
+      });
+      controlsDiv.appendChild(debugBtn);
+    }
+  }
+  
+  /**
+   * Toggle debug mode
+   */
+  toggleDebugMode() {
+    this.debugMode = !this.debugMode;
+    console.log(`Debug mode: ${this.debugMode ? 'ON' : 'OFF'}`);
+    
+    // Update button text if it exists
+    const debugBtn = document.getElementById('debug-btn');
+    if (debugBtn) {
+      debugBtn.textContent = this.debugMode ? 'Hide Debug' : 'Debug Mode';
     }
   }
   
@@ -222,6 +263,28 @@ export class Game {
     // Draw all coins
     for (const coin of this.coins) {
       coin.draw();
+      
+      // Draw debug outlines if debug mode is enabled
+      if (this.debugMode) {
+        this.p.push();
+        this.p.noFill();
+        this.p.stroke(255, 0, 0, 150);
+        this.p.strokeWeight(2);
+        this.p.circle(coin.x, coin.y, coin.radius * 2);
+        
+        // Draw a cross at the center
+        this.p.stroke(0, 255, 0, 150);
+        this.p.line(coin.x - 5, coin.y, coin.x + 5, coin.y);
+        this.p.line(coin.x, coin.y - 5, coin.x, coin.y + 5);
+        
+        // Show coin value and type
+        this.p.fill(0, 0, 255, 200);
+        this.p.noStroke();
+        this.p.textAlign(this.p.CENTER);
+        this.p.textSize(10);
+        this.p.text(`${coin.type} ($${coin.value.toFixed(2)})`, coin.x, coin.y - coin.radius - 5);
+        this.p.pop();
+      }
     }
     
     // Display game over message if game has ended
@@ -283,6 +346,11 @@ export class Game {
     // Press 'n' to start a new game
     if (this.p.key === 'n') {
       this.init();
+    }
+    
+    // Press 'd' to toggle debug mode
+    if (this.p.key === 'd' && this.p.keyCode !== 68) { // Make sure it's not conflicting with the dime shortcut
+      this.toggleDebugMode();
     }
     
     // Arrow keys to adjust user count

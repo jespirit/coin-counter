@@ -130,7 +130,7 @@ export class Coin {
       this.y = Math.max(minY + this.radius, Math.min(maxY - this.radius, my + this.offsetY));
       
       // Slowly rotate the coin when dragging
-      this.rotation += 0.02;
+      // this.rotation += 0.02;
     }
   }
   

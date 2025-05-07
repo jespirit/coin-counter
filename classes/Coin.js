@@ -14,6 +14,9 @@ export class Coin {
     this.p = p;
     this.x = x;
     this.y = y;
+    // Add previous position tracking for velocity calculation
+    this.prevX = x;
+    this.prevY = y;
     this.type = type;
     this.rotation = p.random(0, p.TWO_PI);
     this.dragging = false;
@@ -58,6 +61,9 @@ export class Coin {
     
     // Vector for velocity when moving coins
     this.vel = p.createVector(0, 0);
+    
+    // Track time for calculating velocity during drag
+    this.lastUpdateTime = p.millis();
   }
   
   /**
@@ -105,6 +111,7 @@ export class Coin {
     this.dragging = true;
     this.offsetX = this.x - mx;
     this.offsetY = this.y - my;
+    this.lastUpdateTime = this.p.millis();
   }
   
   /**
@@ -125,9 +132,31 @@ export class Coin {
    */
   updateDrag(mx, my, minX, maxX, minY, maxY) {
     if (this.dragging) {
+      // Save previous position
+      this.prevX = this.x;
+      this.prevY = this.y;
+      
+      // Get current time
+      const currentTime = this.p.millis();
+      const deltaTime = (currentTime - this.lastUpdateTime) / 1000; // Convert to seconds
+      
       // Update position based on mouse and offset
       this.x = Math.max(minX + this.radius, Math.min(maxX - this.radius, mx + this.offsetX));
       this.y = Math.max(minY + this.radius, Math.min(maxY - this.radius, my + this.offsetY));
+      
+      // Calculate velocity based on position change
+      if (deltaTime > 0) {
+        let velX = (this.x - this.prevX) / deltaTime;
+        let velY = (this.y - this.prevY) / deltaTime;
+
+        const scaleFactor = 0.05;
+        velX *= scaleFactor;
+        velY *= scaleFactor;
+        this.vel.set(velX, velY);
+      }
+      
+      // Update time
+      this.lastUpdateTime = currentTime;
       
       // Slowly rotate the coin when dragging
       // this.rotation += 0.02;
@@ -154,6 +183,10 @@ export class Coin {
    */
   update(minX, maxX, minY, maxY) {
     if (!this.dragging) {
+      // Save previous position
+      this.prevX = this.x;
+      this.prevY = this.y;
+      
       // Apply velocity
       this.x += this.vel.x;
       this.y += this.vel.y;

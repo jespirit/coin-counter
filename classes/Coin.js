@@ -153,6 +153,11 @@ export class Coin {
         velX *= scaleFactor;
         velY *= scaleFactor;
         this.vel.set(velX, velY);
+
+        // Limit the magnitude of the coin's velocity (this.vel)
+        // This is the maximum speed the coin will have when released, after the scaleFactor is applied.
+        const maxThrowSpeed = 5; // Adjust this value as needed (pixels per second)
+        this.vel.limit(maxThrowSpeed); 
       }
       
       // Update time

@@ -191,11 +191,38 @@ export class Coin {
       this.x += this.vel.x;
       this.y += this.vel.y;
       
-      // Apply friction (heavier coins have less friction)
-      // Calculate a friction coefficient based on mass (0.05 to 0.15)
-      const frictionCoef = 0.15 - (this.mass * 0.5);
-      this.vel.mult(1 - frictionCoef);
-      
+      // --- NEW FRICTION MODEL ---
+      const speed = this.vel.mag(); // Magnitude of the velocity vector
+      if (speed > 0) { // Only apply friction if the coin is moving
+        // Friction force opposes direction of motion
+        // We can't use a true "force" that acts over time for friction in an impulse system's update step
+        // Instead, we directly reduce velocity.
+
+        // Option A: Constant Deceleration (more like sliding friction)
+        // This will reduce the speed by a fixed amount each frame, until it stops.
+        const frictionMagnitude = 0.1; // Tune this value! Higher means more friction (stops faster)
+                                      // This is pixels/frame^2 if you think of it as deceleration.
+
+        if (speed < frictionMagnitude) {
+          // If the speed is less than the amount we want to reduce it by, just stop it.
+          // This prevents the coin from reversing direction due to friction.
+          this.vel.set(0, 0);
+        } else {
+          // Reduce speed by frictionMagnitude in the opposite direction of velocity
+          const frictionDecelX = (this.vel.x / speed) * frictionMagnitude;
+          const frictionDecelY = (this.vel.y / speed) * frictionMagnitude;
+          this.vel.x -= frictionDecelX;
+          this.vel.y -= frictionDecelY;
+        }
+
+        // Option B: Velocity-Dependent Damping (your current approach, but can be tuned)
+        // This makes friction stronger at higher speeds.
+        // const frictionCoefficient = 0.05; // Tune this value (0.01 to 0.1 is a typical range)
+                                        // Higher means it slows down faster.
+        // this.vel.mult(1 - frictionCoefficient);
+
+      } // --- END NEW FRICTION MODEL ---
+
       // Check boundary collisions
       if (this.x < minX + this.radius) {
         this.x = minX + this.radius;

@@ -224,6 +224,10 @@ export class Game {
             { x: coin2.x, y: coin2.y, radius: coin2.radius }
           );
           
+          // Collision Normal (points from coin1 to coin2)
+          const normalX = dx / distance;
+          const normalY = dy / distance;
+
           // Calculate relative velocity for collision response
           const velX1 = coin1.vel.x;
           const velY1 = coin1.vel.y;
@@ -231,26 +235,29 @@ export class Game {
           const velY2 = coin2.vel.y;
           
           // Relative velocity magnitude along collision normal
-          const vDotNormal = (velX2 - velX1) * (dx / distance) + 
-                             (velY2 - velY1) * (dy / distance);
+          const vRelNormal = (velX2 - velX1) * normalX + 
+                             (velY2 - velY1) * normalY;
           
           // Only proceed with collision response if coins are moving toward each other
-          if (vDotNormal > 0) {
-            // Calculate impulse scalar (simplified physics model)
-            // Using conservation of momentum and elasticity
-            const elasticity = 0.8; // 80% elastic collision
+          if (vRelNormal < 0) {
+            // Bounciness. e = 1 perfectly elastic like billard balls
+            // e = 0 perfectly inelastic objects stick together
+            const elasticity = 0.2;
             const totalMass = coin1.mass + coin2.mass;
-            const impulse = (2 * vDotNormal * elasticity) / totalMass;
+            // const impulse = (2 * vRelNormal * elasticity) / totalMass;
+            const impulseMagnitude = -(1 + elasticity) * vRelNormal / (1 / coin1.mass + 1 / coin2.mass);
+
+            const impulseX = normalX * impulseMagnitude;
+            const impulseY = normalY * impulseMagnitude;
             
             // Only apply physics to non-dragged coins
             if (coin1 !== this.draggedCoin) {
               coin1.x = circle1.x;
               coin1.y = circle1.y;
               
-              // Apply impulse-based force based on mass and velocity
-              const forceX = (dx / distance) * impulse * coin2.mass;
-              const forceY = (dy / distance) * impulse * coin2.mass;
-              coin1.applyForce(forceX, forceY);
+              // Apply impulse directly to coin1's velocity
+              coin1.vel.x -= impulseX / coin1.mass; // J/m for coin1, impulse is opposite to normal
+              coin1.vel.y -= impulseY / coin1.mass;
               
               // Apply slight spin based on tangential velocity component
               const tangentialComponent = Math.abs((velX2 - velX1) * (-dy / distance) + 
@@ -262,10 +269,9 @@ export class Game {
               coin2.x = circle2.x;
               coin2.y = circle2.y;
               
-              // Apply impulse-based force based on mass and velocity
-              const forceX = (-dx / distance) * impulse * coin1.mass;
-              const forceY = (-dy / distance) * impulse * coin1.mass;
-              coin2.applyForce(forceX, forceY);
+              // Apply impulse directly to coin2's velocity
+              coin2.vel.x += impulseX / coin2.mass; // J/m for coin2, impulse is along normal
+              coin2.vel.y += impulseY / coin2.mass;
               
               // Apply slight spin based on tangential velocity component
               const tangentialComponent = Math.abs((velX1 - velX2) * (-dy / distance) + 

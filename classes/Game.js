@@ -315,14 +315,60 @@ export class Game {
         this.p.line(coin.x - 5, coin.y, coin.x + 5, coin.y);
         this.p.line(coin.x, coin.y - 5, coin.x, coin.y + 5);
         
+        // Draw velocity vector
+        const vectorScale = 2; // Scale factor to make vectors visible
+        this.p.stroke(0, 0, 255);
+        this.p.strokeWeight(2);
+        const endX = coin.x + (coin.vel.x * vectorScale);
+        const endY = coin.y + (coin.vel.y * vectorScale);
+        this.p.line(coin.x, coin.y, endX, endY);
+        
+        // Draw arrowhead
+        const arrowSize = 7;
+        const angle = Math.atan2(coin.vel.y, coin.vel.x);
+        if (coin.vel.mag() > 0.01) { // Only draw arrowhead if vector is visible
+          this.p.push();
+          this.p.translate(endX, endY);
+          this.p.rotate(angle);
+          this.p.fill(0, 0, 255, 200);
+          this.p.triangle(0, 0, -arrowSize, arrowSize/2, -arrowSize, -arrowSize/2);
+          this.p.pop();
+        }
+        
         // Show coin value and type
         this.p.fill(0, 0, 255, 200);
         this.p.noStroke();
         this.p.textAlign(this.p.CENTER);
         this.p.textSize(10);
         this.p.text(`${coin.type} ($${coin.value.toFixed(2)})`, coin.x, coin.y - coin.radius - 5);
+        
+        // Show velocity magnitude if non-zero
+        if (coin.vel.mag() > 0.01) {
+          this.p.fill(0, 0, 255, 200);
+          this.p.text(`v: ${coin.vel.mag().toFixed(2)}`, coin.x, coin.y + coin.radius + 15);
+        }
         this.p.pop();
       }
+    }
+    
+    // Display velocity of dragged coin
+    if (this.draggedCoin) {
+      const velocity = this.draggedCoin.vel;
+      const speed = velocity.mag().toFixed(2);
+      const direction = Math.atan2(velocity.y, velocity.x) * 180 / Math.PI;
+      
+      // Display at the top of the screen
+      let top = 100;
+      this.p.push();
+      this.p.fill(40, 40, 200);
+      this.p.noStroke();
+      this.p.textSize(16);
+      this.p.textAlign(this.p.LEFT);
+      this.p.text(`Dragged Coin Velocity:`, 20, top);
+      this.p.text(`Speed: ${speed} pixels/sec`, 20, top+25);
+      this.p.text(`Direction: ${direction.toFixed(0)}°`, 20, top+50);
+      this.p.text(`X: ${velocity.x.toFixed(2)}, Y: ${velocity.y.toFixed(2)}`, 20, top+75);
+      this.p.pop();
     }
     
     // Display game over message if game has ended

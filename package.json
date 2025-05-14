@@ -1,0 +1,16 @@
+{
+  "name": "coin-counter",
+  "version": "1.0.0",
+  "description": "An interactive p5.js game where players count Canadian coins on the screen and test their money-counting skills.",
+  "main": "sketch.js",
+  "scripts": {
+    "start": "http-server -a localhost -p 8081 -c-1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

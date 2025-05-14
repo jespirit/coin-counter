@@ -5,7 +5,7 @@ desktop.ini
 
 # Node modules (if using npm)
 node_modules/
-package-lock.json
+#package-lock.json
 
 # Editor-specific files
 .vscode/

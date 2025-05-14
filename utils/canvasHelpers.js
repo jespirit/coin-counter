@@ -22,11 +22,11 @@ export function setupCanvas(p, width, height) {
  */
 export function preloadCoinImages(p) {
   const coinImages = {
-    toonie: p.loadImage('assets/images/toonie.svg'),
-    loonie: p.loadImage('assets/images/loonie.svg'),
-    quarter: p.loadImage('assets/images/quarter.svg'),
-    dime: p.loadImage('assets/images/dime.svg'),
-    nickel: p.loadImage('assets/images/nickel.svg')
+    toonie: p.loadImage('assets/images/toonie.png'),
+    loonie: p.loadImage('assets/images/loonie.png'),
+    quarter: p.loadImage('assets/images/quarter.png'),
+    dime: p.loadImage('assets/images/dime.png'),
+    nickel: p.loadImage('assets/images/nickel.png')
   };
   
   return coinImages;

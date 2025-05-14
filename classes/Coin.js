@@ -25,23 +25,23 @@ export class Coin {
     // Set coin properties based on type
     switch(type) {
       case 'toonie':
-        this.radius = 28;
+        this.radius = 59;
         this.value = 2.00;
         break;
       case 'loonie':
-        this.radius = 26;
+        this.radius = 55.5;
         this.value = 1.00;
         break;
       case 'quarter':
-        this.radius = 24;
+        this.radius = 50;
         this.value = 0.25;
         break;
       case 'dime':
-        this.radius = 18;
+        this.radius = 38;
         this.value = 0.10;
         break;
       case 'nickel':
-        this.radius = 21;
+        this.radius = 44.5;
         this.value = 0.05;
         break;
       default:

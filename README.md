@@ -81,3 +81,8 @@ This game helps players:
 - Practice counting money
 - Develop quick mental addition skills
 - Understand the relative values of different coins
+
+## Images
+
+PNG from
+https://www.mint.ca/en/shop/coins/2025/classic-uncirculated-coin-set-2025

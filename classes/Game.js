@@ -242,7 +242,7 @@ export class Game {
           if (vRelNormal < 0) {
             // Bounciness. e = 1 perfectly elastic like billard balls
             // e = 0 perfectly inelastic objects stick together
-            const elasticity = 0.1;
+            const elasticity = 0.08;
             const totalMass = coin1.mass + coin2.mass;
             // const impulse = (2 * vRelNormal * elasticity) / totalMass;
             const impulseMagnitude = -(1 + elasticity) * vRelNormal / (1 / coin1.mass + 1 / coin2.mass);

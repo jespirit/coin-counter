@@ -358,7 +358,7 @@ export class Game {
     }
     
     // Display velocity of dragged coin
-    if (this.draggedCoin) {
+    if (this.debugMode && this.draggedCoin) {
       const velocity = this.draggedCoin.vel;
       const speed = velocity.mag().toFixed(2);
       const direction = Math.atan2(velocity.y, velocity.x) * 180 / Math.PI;

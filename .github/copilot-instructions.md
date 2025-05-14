@@ -141,3 +141,9 @@ export function clamp(val, min, max) {
 ## ✅ 9. AI Agent Instructions
 
 > Treat p5.js as a rendering/visualization engine. All core logic (input handling, physics, animation) should be implemented in modular JS using ES6 syntax. Prioritize code clarity, reusability, and separation of concerns. All `p5` functions should be accessed through the instance `p`.
+
+### Development Environment
+
+Please use the following guidelines when running in copilot agent mode
+- The terminal is Git Bash on Windows 10
+- Use Linux style paths. Do NOT use Windows style path such as C:\Windows\folder1\folder2

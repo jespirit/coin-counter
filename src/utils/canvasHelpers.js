@@ -15,19 +15,59 @@ export function setupCanvas(p, width, height) {
   return canvas;
 }
 
+function loadImageFailure(event, coinImagesObject, imageName) {
+  // coinImagesObject is the actual 'coinImages' object from preloadCoinImages
+  // imageName is the key (e.g., 'toonie', 'loonie')
+
+  const imageInstance = coinImagesObject ? coinImagesObject[imageName] : undefined;
+
+  console.error(`Failed to load image for ${imageName || 'unknown'}:`, event);
+  
+  if (imageInstance && typeof imageInstance.width !== 'undefined' && typeof imageInstance.height !== 'undefined') {
+    // imageInstance is the p5.Image instance.
+    // Its width/height might be 0 or default if loading truly failed.
+    console.log(`Associated p5.Image object (width: ${imageInstance.width}, height: ${imageInstance.height}):`, imageInstance);
+  } else if (imageName) {
+    console.log(`No valid p5.Image object was found for ${imageName} in coinImagesObject at the time of failure logging.`);
+  }
+
+  // Set the property in the original coinImages object to null
+  if (coinImagesObject && imageName && coinImagesObject.hasOwnProperty(imageName)) {
+    coinImagesObject[imageName] = null;
+  }
+}
+
 /**
  * Preloads images for different Canadian coins
  * @param {p5} p - The p5 instance
  * @returns {Object} Object containing loaded images
  */
 export function preloadCoinImages(p) {
-  const coinImages = {
-    toonie: p.loadImage('assets/images/toonie.png'),
-    loonie: p.loadImage('assets/images/loonie.png'),
-    quarter: p.loadImage('assets/images/quarter.png'),
-    dime: p.loadImage('assets/images/dime.png'),
-    nickel: p.loadImage('assets/images/nickel.png')
-  };
+  const coinImages = {}; // Initialize first to allow self-reference in callbacks
+
+  coinImages.toonie = p.loadImage('assets/images/toonie.png', null, (e) => {
+    loadImageFailure(e, coinImages, 'toonie');
+  });
+
+  coinImages.loonie = p.loadImage('assets/images/loonie.png', 
+    null, // No success callback defined
+    (event) => {
+      loadImageFailure(event, coinImages, 'loonie');
+      // coinImages.loonie = null; // This is now handled by loadImageFailure
+    }
+  );
+
+  coinImages.quarter = p.loadImage('assets/images/quarter.png', null, (event) => {
+    loadImageFailure(event, coinImages, 'quarter');
+  });
+
+  coinImages.dime = p.loadImage('assets/images/dime.png', null, (event) => {
+    loadImageFailure(event, coinImages, 'dime');
+  });
+  
+  coinImages.nickel = p.loadImage('assets/images/nickel.png', null, (event) => {
+    loadImageFailure(event, coinImages, 'nickel');
+  });
   
   return coinImages;
 }

@@ -5,12 +5,15 @@
   "main": "sketch.js",
   "scripts": {
     "start": "http-server -a localhost -p 8081 -c-1",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
   }
 }

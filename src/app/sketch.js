@@ -27,7 +27,7 @@ const sketch = (p) => {
   p.setup = () => {
     // Create responsive canvas and place it in the game-canvas div
     const parentElement = document.getElementById('game-canvas');
-    const canvasWidth = parentElement ? parentElement.offsetWidth : 800;
+    const canvasWidth = parentElement ? parentElement.clientWidth : 800;
     const canvasHeight = 600;
     
     setupCanvas(p, canvasWidth, canvasHeight);

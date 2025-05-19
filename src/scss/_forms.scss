@@ -1,0 +1,34 @@
+@import 'mixins/_forms';
+// Copied from Bootstrap Forms
+
+//
+// Textual form controls
+//
+
+$input-padding-y: .375rem;
+$input-padding-x: .75rem;
+$font-size-base: 1rem;
+$input-line-height: 1.5;
+$input-color: #495057;
+$input-bg: #fff;
+$input-border-width: 1px;
+$input-border-color: #ced4da;
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: $input-padding-y $input-padding-x;
+  font-size: $font-size-base;
+  line-height: $input-line-height;
+  color: $input-color;
+  background-color: $input-bg;
+  background-clip: padding-box;
+  border: $input-border-width solid $input-border-color;
+
+  @include form-control-focus();
+}
+
+.form-control {
+  border-radius: .25rem;
+  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}

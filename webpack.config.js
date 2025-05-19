@@ -41,6 +41,17 @@ module.exports = {
           filename: 'assets/images/[name][ext][query]'
         }
       },
+      {
+        test: /\.s[ac]ss$/i, // Rule for .scss or .sass files
+        use: [
+          // Creates `style` nodes from JS strings
+          'style-loader',
+          // Translates CSS into CommonJS
+          'css-loader',
+          // Compiles Sass to CSS
+          'sass-loader',
+        ],
+      },
       // You can add similar rules for other image types (jpg, svg, etc.) if needed
       // {
       //   test: /\.(jpe?g|gif|svg)$/i,

@@ -51,7 +51,7 @@ export class Coin {
     }
 
     this.visualRadius = this.radius;
-    // this.radius *= 0.90;
+    this.radius *= 0.98;
     
     // Calculate mass based on radius (proportional to area: πr²)
     this.mass = Math.PI * this.radius * this.radius * 0.01;

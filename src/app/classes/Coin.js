@@ -8,9 +8,9 @@ export class Coin {
    * @param {number} x - X position of the coin
    * @param {number} y - Y position of the coin
    * @param {string} type - Type of coin (toonie, loonie, quarter, dime, nickel)
-   * @param {Object} images - Object containing loaded images for coins
+   * @param {Object} coinSpriteData - Object containing the loaded spritesheet and frame data
    */
-  constructor(p, x, y, type, images) {
+  constructor(p, x, y, type, coinSpriteData) {
     this.p = p;
     this.x = x;
     this.y = y;
@@ -20,8 +20,9 @@ export class Coin {
     this.type = type;
     this.rotation = p.random(0, p.TWO_PI);
     this.dragging = false;
-    this.image = images[type];
-    
+    this.coinSpriteData = coinSpriteData; // Store the sprite data
+    this.isFront = p.random() > 0.5; // Randomize initial side
+
     // Set coin properties based on type
     switch(type) {
       case 'toonie':
@@ -50,7 +51,7 @@ export class Coin {
     }
 
     this.visualRadius = this.radius;
-    this.radius *= 0.90;
+    // this.radius *= 0.90;
     
     // Calculate mass based on radius (proportional to area: πr²)
     this.mass = Math.PI * this.radius * this.radius * 0.01;
@@ -58,38 +59,74 @@ export class Coin {
     // Save the offset from mouse to center of coin when dragging
     this.offsetX = 0;
     this.offsetY = 0;
-    
+
     // Vector for velocity when moving coins
     this.vel = p.createVector(0, 0);
-    
+
     // Track time for calculating velocity during drag
     this.lastUpdateTime = p.millis();
   }
-  
+
   /**
-   * Draw the coin on the canvas
+   * Flip the coin to show the other side.
+   */
+  flip() {
+    this.isFront = !this.isFront;
+  }
+
+  /**
+   * Draw the coin on the canvas using the spritesheet
    */
   draw() {
     const p = this.p;
     p.push();
     p.translate(this.x, this.y);
     p.rotate(this.rotation);
-    
-    if (this.image) {
-      p.imageMode(p.CENTER);
-      p.image(this.image, 0, 0, this.visualRadius * 2, this.visualRadius * 2);
+    p.imageMode(p.CENTER);
+
+    if (this.coinSpriteData && this.coinSpriteData.isReady && this.coinSpriteData.image && this.coinSpriteData.spriteDefinitions) {
+      const { image, spriteDefinitions } = this.coinSpriteData;
+      const coinDef = spriteDefinitions[this.type];
+
+      if (!coinDef) {
+        console.error(`Sprite definition not found for coin type: ${this.type}`);
+        this.drawFallback();
+        p.pop();
+        return;
+      }
+
+      const sx = this.isFront ? coinDef.sxFront : coinDef.sxBack;
+      const sy = coinDef.sy;
+      const sWidth = coinDef.sWidth;
+      const sHeight = coinDef.sHeight;
+
+      p.image(
+        image,
+        0, 0, // Destination x, y (center of the coin object)
+        this.visualRadius * 2, this.visualRadius * 2, // Destination width, height (scaled to visualRadius)
+        sx, sy,         // Source x, y in the spritesheet
+        sWidth, sHeight // Source width, height from sprite definition
+      );
     } else {
-      // Fallback if image isn't loaded
-      p.fill(200, 200, 200);
-      p.ellipse(0, 0, this.visualRadius * 2);
-      p.fill(0);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.text(this.type, 0, 0);
+      this.drawFallback();
     }
-    
+
     p.pop();
   }
-  
+
+  /**
+   * Fallback drawing method if the image/sprite isn't available.
+   */
+  drawFallback() {
+    const p = this.p;
+    // Fallback if image isn't loaded or sprite data is incomplete
+    p.fill(200, 200, 200);
+    p.ellipse(0, 0, this.visualRadius * 2);
+    p.fill(0);
+    p.textAlign(p.CENTER, p.CENTER);
+    p.text(this.type, 0, 0);
+  }
+
   /**
    * Check if the mouse is over this coin
    * @param {number} mx - Mouse X position

@@ -9,11 +9,11 @@ export class Game {
   /**
    * Create a new game instance
    * @param {p5} p - The p5 instance
-   * @param {Object} coinImages - Object containing loaded coin images
+   * @param {Object} coinSpriteData - Object containing loaded coin spritesheet and frame data
    */
-  constructor(p, coinImages) {
+  constructor(p, coinSpriteData) {
     this.p = p;
-    this.coinImages = coinImages;
+    this.coinSpriteData = coinSpriteData; // Updated from coinImages
     this.coins = [];
     this.draggedCoin = null;
     this.totalValue = 0;
@@ -67,7 +67,7 @@ export class Game {
         y = getRandomInt(padding, this.p.height - padding);
         
         // Create a temporary coin to check for collisions
-        const tempCoin = new Coin(this.p, x, y, coinType, this.coinImages);
+        const tempCoin = new Coin(this.p, x, y, coinType, this.coinSpriteData); // Updated
         
         // Check if this coin overlaps with any existing coins
         validPosition = this.coins.every(coin => {
@@ -82,7 +82,7 @@ export class Game {
       
       // If we found a valid position, create the coin
       if (validPosition) {
-        const coin = new Coin(this.p, x, y, coinType, this.coinImages);
+        const coin = new Coin(this.p, x, y, coinType, this.coinSpriteData); // Updated
         this.coins.push(coin);
         this.totalValue += coin.value;
       }
@@ -426,6 +426,17 @@ export class Game {
     // Press 'r' to rotate the currently selected coin
     if (this.p.key === 'r' && this.draggedCoin) {
       this.draggedCoin.rotation += this.p.PI / 4;
+    }
+
+    // Press 'f' to flip coin(s)
+    if (this.p.key === 'f') {
+      if (this.draggedCoin) {
+        this.draggedCoin.flip();
+      } else {
+        for (const coin of this.coins) {
+          coin.flip();
+        }
+      }
     }
     
     // Press 'c' to check the answer

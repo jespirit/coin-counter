@@ -2,8 +2,33 @@
  * Canvas setup and p5.js helper utilities
  */
 
-import loonieImage from '../../assets/images/loonie.png';
-import toonieImage from '../../assets/images/toonie.png';
+// Remove old image imports if they were only for the previous preloadCoinImages
+import coinSpritesheetPath from '../../assets/images/canadian-coins.png';
+
+/**
+ * Placeholder definitions for each coin sprite within the spritesheet.
+ * IMPORTANT: You MUST update these values (sWidth, sHeight, sxFront, sxBack, sy)
+ * to accurately describe the position and size of each coin's front and back
+ * image within your 'canadian-coins.png' spritesheet.
+ *
+ * - sWidth: Source width of the coin's image in the spritesheet.
+ * - sHeight: Source height of the coin's image in the spritesheet.
+ * - sxFront: Source x-coordinate for the front image (usually 0).
+ * - sxBack: Source x-coordinate for the back image (e.g., sxFront + sWidth of front).
+ * - sy: Source y-coordinate for this coin's row in the spritesheet.
+ *       This should be cumulative if coins are stacked vertically.
+ */
+const COIN_SPRITE_DEFINITIONS = {
+  // Order: Nickel, Dime, Quarter, Loonie, Toonie
+  // YOU MUST VERIFY/UPDATE sWidth, sHeight, sxFront, sxBack for each coin.
+  // sy values are recalculated based on the new order and assumed sHeights.
+
+  'nickel':  { sWidth: 180, sHeight: 180, sxFront: 0,   sxBack: 180,  sy: 0 },    // Example: Nickel 35x35px, starts at y=0
+  'dime':    { sWidth: 156, sHeight: 156, sxFront: 0,   sxBack: 156,  sy: 180 },   // Example: Dime 30x30, starts at y=35 (0+35)
+  'quarter': { sWidth: 200, sHeight: 200, sxFront: 0,   sxBack: 200,  sy: 336 },   // Example: Quarter 40x40, starts at y=65 (35+30)
+  'loonie':  { sWidth: 220, sHeight: 220, sxFront: 0,   sxBack: 220,  sy: 536 },  // Example: Loonie 45x45, starts at y=105 (65+40)
+  'toonie':  { sWidth: 232, sHeight: 232, sxFront: 0,   sxBack: 232,  sy: 756 }   // Example: Toonie 50x50, starts at y=150 (105+45)
+};
 
 /**
  * Creates and sets up the canvas
@@ -18,61 +43,41 @@ export function setupCanvas(p, width, height) {
   return canvas;
 }
 
-function loadImageFailure(event, coinImagesObject, imageName) {
-  // coinImagesObject is the actual 'coinImages' object from preloadCoinImages
-  // imageName is the key (e.g., 'toonie', 'loonie')
-
-  const imageInstance = coinImagesObject ? coinImagesObject[imageName] : undefined;
-
-  console.error(`Failed to load image for ${imageName || 'unknown'}:`, event);
-  
-  if (imageInstance && typeof imageInstance.width !== 'undefined' && typeof imageInstance.height !== 'undefined') {
-    // imageInstance is the p5.Image instance.
-    // Its width/height might be 0 or default if loading truly failed.
-    console.log(`Associated p5.Image object (width: ${imageInstance.width}, height: ${imageInstance.height}):`, imageInstance);
-  } else if (imageName) {
-    console.log(`No valid p5.Image object was found for ${imageName} in coinImagesObject at the time of failure logging.`);
-  }
-
-  // Set the property in the original coinImages object to null
-  if (coinImagesObject && imageName && coinImagesObject.hasOwnProperty(imageName)) {
-    coinImagesObject[imageName] = null;
-  }
-}
+// The loadImageFailure function is no longer needed with the new spritesheet approach.
+// function loadImageFailure(event, coinImagesObject, imageName) { ... }
 
 /**
- * Preloads images for different Canadian coins
+ * Preloads the coin spritesheet and stores sprite definitions.
  * @param {p5} p - The p5 instance
- * @returns {Object} Object containing loaded images
+ * @returns {Object} Object containing the loaded spritesheet image and its definitions.
  */
 export function preloadCoinImages(p) {
-  const coinImages = {}; // Initialize first to allow self-reference in callbacks
+  const coinSpriteData = {
+    image: null,
+    spriteDefinitions: COIN_SPRITE_DEFINITIONS, // Store the detailed definitions
+    isReady: false, // Flag to indicate if image is loaded
+  };
 
-  coinImages.toonie = p.loadImage(toonieImage, null, (e) => {
-    loadImageFailure(e, coinImages, 'toonie');
-  });
-
-  coinImages.loonie = p.loadImage(loonieImage, 
-    null, // No success callback defined
-    (event) => {
-      loadImageFailure(event, coinImages, 'loonie');
-      // coinImages.loonie = null; // This is now handled by loadImageFailure
+  coinSpriteData.image = p.loadImage(
+    coinSpritesheetPath,
+    (img) => { // Success callback
+      if (img.width > 0 && img.height > 0) {
+        coinSpriteData.isReady = true;
+        console.log(
+          `Spritesheet loaded: ${img.width}x${img.height}. Using defined sprite details.`
+        );
+        // Optional: Add validation here to check if the defined sx, sy, sWidth, sHeight
+        // in COIN_SPRITE_DEFINITIONS are within the bounds of img.width and img.height.
+      } else {
+        console.error('Spritesheet loaded but has zero dimensions:', coinSpritesheetPath);
+      }
+    },
+    (event) => { // Failure callback
+      console.error('Failed to load coin spritesheet:', coinSpritesheetPath, event);
     }
   );
 
-  coinImages.quarter = p.loadImage('assets/images/quarter.png', null, (event) => {
-    loadImageFailure(event, coinImages, 'quarter');
-  });
-
-  coinImages.dime = p.loadImage('assets/images/dime.png', null, (event) => {
-    loadImageFailure(event, coinImages, 'dime');
-  });
-  
-  coinImages.nickel = p.loadImage('assets/images/nickel.png', null, (event) => {
-    loadImageFailure(event, coinImages, 'nickel');
-  });
-  
-  return coinImages;
+  return coinSpriteData;
 }
 
 /**

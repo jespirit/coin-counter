@@ -10,15 +10,16 @@ import '../style.css';
 const sketch = (p) => {
   // Game variables
   let game;
-  let coinImages;
+  let coinSpriteData; // Changed from coinImages to reflect it holds the spritesheet and its data
   
   p.preload = () => {
-    // Preload coin images (fallback to placeholders if images aren't available)
+    // Preload coin spritesheet
     try {
-      coinImages = preloadCoinImages(p);
+      coinSpriteData = preloadCoinImages(p);
     } catch (e) {
-      console.warn('Failed to load coin images, using placeholders', e);
-      coinImages = { toonie: null, loonie: null, quarter: null, dime: null, nickel: null };
+      console.error('Failed to load coin spritesheet, game cannot start properly.', e);
+      // If spritesheet fails, coinSpriteData will contain isReady: false
+      // The Coin class drawFallback will be used.
     }
   };
   
@@ -30,8 +31,8 @@ const sketch = (p) => {
     
     setupCanvas(p, canvasWidth, canvasHeight);
     
-    // Initialize game
-    game = new Game(p, coinImages);
+    // Initialize game with the coin sprite data
+    game = new Game(p, coinSpriteData);
     
     // Set text properties
     p.textFont('Arial');
@@ -62,8 +63,9 @@ const sketch = (p) => {
       p.textAlign(p.LEFT, p.TOP);
       p.text('Click and drag to move coins', 10, 10);
       p.text('Press R to rotate selected coin', 10, 30);
-      p.text('Use arrow keys to adjust your count', 10, 50);
-      p.text('Press C to check your answer', 10, 70);
+      p.text('Press F to flip coin(s)', 10, 50); // Added instruction for flipping
+      p.text('Use arrow keys to adjust your count', 10, 70);
+      p.text('Press C to check your answer', 10, 90);
     }
   };
   

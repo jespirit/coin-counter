@@ -4,6 +4,7 @@
  */
 import { setupCanvas, preloadCoinImages, handleWindowResize } from './utils/canvasHelpers.js';
 import { Game } from './classes/Game.js';
+import '../style.css';
 
 // Using p5.js instance mode to avoid polluting global scope
 const sketch = (p) => {

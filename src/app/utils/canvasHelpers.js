@@ -2,6 +2,9 @@
  * Canvas setup and p5.js helper utilities
  */
 
+import loonieImage from '../../assets/images/loonie.png';
+import toonieImage from '../../assets/images/toonie.png';
+
 /**
  * Creates and sets up the canvas
  * @param {p5} p - The p5 instance
@@ -45,11 +48,11 @@ function loadImageFailure(event, coinImagesObject, imageName) {
 export function preloadCoinImages(p) {
   const coinImages = {}; // Initialize first to allow self-reference in callbacks
 
-  coinImages.toonie = p.loadImage('assets/images/toonie.png', null, (e) => {
+  coinImages.toonie = p.loadImage(toonieImage, null, (e) => {
     loadImageFailure(e, coinImages, 'toonie');
   });
 
-  coinImages.loonie = p.loadImage('assets/images/loonie.png', 
+  coinImages.loonie = p.loadImage(loonieImage, 
     null, // No success callback defined
     (event) => {
       loadImageFailure(event, coinImages, 'loonie');

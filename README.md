@@ -86,3 +86,8 @@ This game helps players:
 
 PNG from
 https://www.mint.ca/en/shop/coins/2025/classic-uncirculated-coin-set-2025
+
+
+## Webpack
+
+The Dev Server keeps bundle files in memory and serves them relative to server's root path.

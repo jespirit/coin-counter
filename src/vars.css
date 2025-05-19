@@ -1,0 +1,9 @@
+:root {
+  --primary-color: #e11837;  /* Canadian red */
+  --secondary-color: #fff;   /* White */
+  --accent-color: #c6c6c6;   /* Silver/gray for coins */
+  --background-color: #f7f7f7;
+  --text-color: #333;
+  --font-size-base: 16px;
+  --font-family: 'Arial', sans-serif;
+}

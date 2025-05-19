@@ -1,0 +1,59 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+
+module.exports = {
+  mode: 'development',
+  entry: './src/app/sketch.js',
+  devServer: {
+    static: './dist',
+    port: 8080,
+    open: {
+      app: {
+        name: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        arguments: ['--user-data-dir', 'C:\\chrome_profiles\\user1']
+      }
+    }
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'Output Management',
+      template: 'src/index.html'
+    })
+  ],
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'dist'),
+    clean: true,
+    // Default asset output path (e.g., for fonts, other media)
+    assetModuleFilename: 'assets/[name][ext][query]'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i, // Rule for .css files
+        use: ['style-loader', 'css-loader'], // Use style-loader and css-loader
+      },
+      {
+        test: /\.png$/i, // Rule for .png files
+        type: 'asset/resource', // Webpack 5 asset modules
+        generator: {
+          // Output png files to 'dist/assets/images/'
+          filename: 'assets/images/[name][ext][query]'
+        }
+      },
+      // You can add similar rules for other image types (jpg, svg, etc.) if needed
+      // {
+      //   test: /\.(jpe?g|gif|svg)$/i,
+      //   type: 'asset/resource',
+      //   generator: {
+      //     filename: 'assets/images/[name][ext][query]'
+      //   }
+      // },
+    ],
+  },
+  // Optional: Add devServer configuration for a better development experience
+  // devServer: {
+  //   static: './dist', // Serve content from the dist directory
+  //   open: true, // Open the browser after server had been started
+  // },
+};

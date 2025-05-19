@@ -92,6 +92,17 @@ export function updateUserCount(amount) {
 }
 
 /**
+ * Updates user count display on the HTML page
+ * @param {string} amount - Formatted amount to display
+ */
+export function clearUserCountText(amount) {
+  const userCountTextElement = document.getElementById('user-count-text');
+  if (userCountTextElement) {
+    userCountTextElement.value = '';
+  }
+}
+
+/**
  * Updates actual total display on the HTML page 
  * @param {string} amount - Formatted amount to display
  * @param {boolean} show - Whether to show or hide the actual total

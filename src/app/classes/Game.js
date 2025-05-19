@@ -3,7 +3,7 @@
  */
 import { Coin } from './Coin.js';
 import { getRandomInt, formatCurrency, resolveCollision, clamp } from '../utils/mathHelpers.js';
-import { updateUserCount, updateActualTotal } from '../utils/canvasHelpers.js';
+import { updateUserCount, updateActualTotal, clearUserCountText } from '../utils/canvasHelpers.js';
 
 export class Game {
   /**
@@ -43,6 +43,7 @@ export class Game {
     // Reset UI displays
     updateUserCount('$0.00');
     updateActualTotal('$0.00', false);
+    clearUserCountText();
     
     // Generate random coins
     const numCoins = getRandomInt(this.minCoins, this.maxCoins);
@@ -98,6 +99,7 @@ export class Game {
     const submitBtn = document.getElementById('submit-btn');
     const newGameBtn = document.getElementById('new-game-btn');
     const debugBtn = document.getElementById('debug-btn');
+    const userCountTextInput = document.getElementById('user-count-text'); // Get the text input
     
     if (submitBtn) {
       submitBtn.addEventListener('click', () => {
@@ -118,6 +120,16 @@ export class Game {
     } else {
       // Create debug button if it doesn't exist
       this.createDebugButton();
+    }
+
+    // Add event listener for the Enter key on the text input
+    if (userCountTextInput) {
+      userCountTextInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault(); // Prevent default form submission or other Enter key actions
+          this.checkAnswer();
+        }
+      });
     }
   }
   
@@ -410,6 +422,11 @@ export class Game {
     const userCountElement = document.getElementById('user-count');
     if (userCountElement) {
       this.userGuess = parseFloat(userCountElement.textContent.replace('$', '')) || 0;
+    }
+
+    const userCountTextElement = document.getElementById('user-count-text');
+    if (userCountTextElement) {
+      this.userGuess = parseFloat(userCountTextElement.value) || 0;
     }
     
     this.gameEnded = true;

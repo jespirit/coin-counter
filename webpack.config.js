@@ -7,6 +7,7 @@ module.exports = {
   devServer: {
     static: './dist',
     port: 8080,
+    // Note: This doesn't launch Chrome with user1 profile
     open: {
       app: {
         name: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',

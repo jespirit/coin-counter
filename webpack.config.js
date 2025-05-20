@@ -1,8 +1,10 @@
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   entry: './src/app/sketch.js',
   devServer: {
     static: './dist',
@@ -13,17 +15,26 @@ module.exports = {
         name: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         arguments: ['--user-data-dir', 'C:\\chrome_profiles\\user1']
       }
+    },
+    client: {
+      overlay: {
+        warnings: false,
+        errors: true
+      }
     }
   },
-  devtool: 'inline-source-map',
+  devtool: false,
   plugins: [
     new HtmlWebpackPlugin({
       title: 'Output Management',
       template: 'src/index.html'
+    }),
+    new MiniCssExtractPlugin({
+      filename: 'assets/css/[name].[contenthash].css'
     })
   ],
   output: {
-    filename: '[name].js',
+    filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
     // Default asset output path (e.g., for fonts, other media)
@@ -33,7 +44,7 @@ module.exports = {
     rules: [
       {
         test: /\.css$/i, // Rule for .css files
-        use: ['style-loader', 'css-loader'], // Use style-loader and css-loader
+        use: [MiniCssExtractPlugin.loader, 'css-loader'], // Use style-loader and css-loader
       },
       {
         test: /\.png$/i, // Rule for .png files
@@ -46,8 +57,7 @@ module.exports = {
       {
         test: /\.s[ac]ss$/i, // Rule for .scss or .sass files
         use: [
-          // Creates `style` nodes from JS strings
-          'style-loader',
+          MiniCssExtractPlugin.loader,
           // Translates CSS into CommonJS
           'css-loader',
           // Compiles Sass to CSS
@@ -63,6 +73,13 @@ module.exports = {
       //   }
       // },
     ],
+  },
+  optimization: { // Add optimization section for CSS minification
+    minimizer: [
+      `...`, // This tells webpack to extend existing minimizers (like terser for JS)
+      new CssMinimizerPlugin(),
+    ],
+    minimize: true
   },
   // Optional: Add devServer configuration for a better development experience
   // devServer: {

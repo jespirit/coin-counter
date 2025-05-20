@@ -1,0 +1,62 @@
+name: Deploy Project to GitHub Pages Subdirectory
+
+on:
+  push:
+    branches:
+      - main # Or master, or whatever your main development branch is
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: write # Required to push to the gh-pages branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # Concurrency setting to ensure only one deployment happens at a time per branch/ref
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your project's Node.js version
+          cache: 'npm' # Cache npm dependencies
+
+      - name: Install dependencies
+        run: npm ci # Use 'ci' for cleaner installs in CI environments
+
+      - name: Build project
+        run: npm run build # This will use your webpack.config.js with the production publicPath
+        env:
+          NODE_ENV: production # Ensure production mode for Webpack
+
+      # Step to deploy the 'dist' folder to the 'gh-pages' branch
+      # in a subdirectory matching the repository name.
+      - name: Deploy to gh-pages branch in subdirectory
+        uses: peaceiris/actions-gh-pages@v3 # Or check for latest v4.x.x
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: main # The branch to deploy to
+          publish_dir: ./dist    # The folder Webpack builds to
+          # This is the crucial part for deploying to a subdirectory
+          # It will create a folder with your repo's name on the gh-pages branch
+          # and put the contents of publish_dir into it.
+          destination_dir: ${{ github.event.repository.name }}
+          # Example: If repo is 'coin-counter', files go into 'coin-counter/' on gh-pages branch
+          # user_name: 'github-actions[bot]' # Optional: Custom commit user
+          # user_email: 'github-actions[bot]@users.noreply.github.com' # Optional: Custom commit email
+          # commit_message: 'Deploy ${{ github.event.repository.name }} to GitHub Pages' # Optional: Custom commit message
+          # keep_files: false # Set to true if you want to keep other files on gh-pages branch root
+
+    # If you also want to trigger a deployment to GitHub Pages service after pushing to gh-pages branch
+    # (This is usually automatic if gh-pages is set as the source in repo settings)
+    # But if you want explicit control or are using a custom domain that needs an update:
+    # - name: Deploy to GitHub Pages service (optional, usually automatic)
+    #   uses: actions/deploy-pages@v2 # or latest
+    #   # This step assumes your gh-pages branch is correctly configured in repo settings
+    #   # and that GitHub Pages is enabled for the repository.

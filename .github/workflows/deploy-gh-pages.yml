@@ -35,28 +35,27 @@ jobs:
         env:
           NODE_ENV: production # Ensure production mode for Webpack
 
-      # Step to deploy the 'dist' folder to the 'gh-pages' branch
-      # in a subdirectory matching the repository name.
-      - name: Deploy to gh-pages branch in subdirectory
+      - name: Deploy to jespirit.github.io repository
         uses: peaceiris/actions-gh-pages@v3 # Or check for latest v4.x.x
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: main # The branch to deploy to
-          publish_dir: ./dist    # The folder Webpack builds to
-          # This is the crucial part for deploying to a subdirectory
-          # It will create a folder with your repo's name on the gh-pages branch
-          # and put the contents of publish_dir into it.
-          destination_dir: ${{ github.event.repository.name }}
-          # Example: If repo is 'coin-counter', files go into 'coin-counter/' on gh-pages branch
-          # user_name: 'github-actions[bot]' # Optional: Custom commit user
-          # user_email: 'github-actions[bot]@users.noreply.github.com' # Optional: Custom commit email
-          # commit_message: 'Deploy ${{ github.event.repository.name }} to GitHub Pages' # Optional: Custom commit message
-          # keep_files: false # Set to true if you want to keep other files on gh-pages branch root
-
-    # If you also want to trigger a deployment to GitHub Pages service after pushing to gh-pages branch
-    # (This is usually automatic if gh-pages is set as the source in repo settings)
-    # But if you want explicit control or are using a custom domain that needs an update:
-    # - name: Deploy to GitHub Pages service (optional, usually automatic)
-    #   uses: actions/deploy-pages@v2 # or latest
-    #   # This step assumes your gh-pages branch is correctly configured in repo settings
-    #   # and that GitHub Pages is enabled for the repository.
+          # Use the PAT you stored as a secret
+          personal_token: ${{ secrets.GH_PAT }}
+          # The repository to deploy to (your main portfolio)
+          external_repository: jespirit/jespirit.github.io
+          # The branch in jespirit.github.io to deploy to
+          publish_branch: main # Or master, or whatever branch your portfolio serves from
+          # The directory in coin-counter that contains the built assets
+          publish_dir: ./dist
+          # The subdirectory within jespirit.github.io/main where files will be placed
+          destination_dir: coin-counter
+          # Optional: Set a custom committer name and email
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          # Optional: Custom commit message
+          commit_message: 'Deploy: Update coin-counter from ${{ github.repository }}@${{ github.sha }}'
+          # `keep_files: false` (default) within destination_dir means it will
+          # clear the `coin-counter` directory on the target branch before adding new files.
+          # This is usually what you want for a clean deployment of the sub-project.
+          # If you set `keep_files: true`, it would try to preserve other files
+          # in the target repo, but with `destination_dir` it mainly affects that dir.
+          keep_files: false
